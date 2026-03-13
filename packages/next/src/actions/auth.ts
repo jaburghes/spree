@@ -3,7 +3,7 @@
 import { revalidateTag } from 'next/cache';
 import type { Customer } from '@spree/sdk';
 import { getClient } from '../config';
-import { setAccessToken, clearAccessToken, getAccessToken, getCartToken } from '../cookies';
+import { setAccessToken, clearAccessToken, getAccessToken, getCartToken, getCartId, clearCartCookies } from '../cookies';
 import { withAuthRefresh } from '../auth-helpers';
 
 /**
@@ -20,9 +20,10 @@ export async function login(
 
     // Associate guest cart if one exists
     const cartToken = await getCartToken();
-    if (cartToken) {
+    const cartId = await getCartId();
+    if (cartToken && cartId) {
       try {
-        await getClient().cart.associate({
+        await getClient().carts.associate(cartId, {
           token: result.token,
           spreeToken: cartToken,
         });
@@ -64,9 +65,10 @@ export async function register(
 
     // Associate guest cart
     const cartToken = await getCartToken();
-    if (cartToken) {
+    const cartId = await getCartId();
+    if (cartToken && cartId) {
       try {
-        await getClient().cart.associate({
+        await getClient().carts.associate(cartId, {
           token: result.token,
           spreeToken: cartToken,
         });
@@ -88,9 +90,12 @@ export async function register(
 
 /**
  * Logout the current user.
+ * Clears all auth and cart cookies to prevent the next guest session
+ * from seeing/modifying the previous user's cart.
  */
 export async function logout(): Promise<void> {
   await clearAccessToken();
+  await clearCartCookies();
   revalidateTag('customer');
   revalidateTag('cart');
   revalidateTag('addresses');

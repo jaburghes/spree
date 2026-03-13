@@ -1,5 +1,50 @@
 # @spree/next
 
+## 0.10.3
+
+### Patch Changes
+
+- Allow `complete()` to accept an explicit `cartId` parameter. When provided, bypasses the cart cookie lookup — needed for the order-placed page where cart cookies may have been cleared after checkout.
+
+## 0.10.2
+
+### Patch Changes
+
+- Fix `logout()` to clear cart cookies alongside JWT. Previously, logging out only cleared the access token, leaving cart token and cart ID cookies intact — allowing the next guest session to see and interact with the previous user's cart.
+- Fix `requireCartId()` to resolve cart via JWT for authenticated users who don't have the cart ID cookie yet.
+- Unified `setCartToken`/`setCartId` into `setCartCookies()` and `clearCartToken`/`clearCartId` into `clearCartCookies()` since they are always managed as a pair.
+
+## 0.10.1
+
+### Patch Changes
+
+- Fix `getOrder` to work for guest users by passing `spreeToken` alongside JWT. Previously, `getOrder` used `withAuthRefresh` which required JWT authentication, causing the order-placed page to fail for guest checkouts.
+
+## 0.10.0
+
+### Minor Changes
+
+- Unified cart and checkout server actions under single `cart.ts` module
+
+  **Breaking changes:**
+
+  - `getCheckout()` removed — use `getCart()` instead
+  - `updateCheckout(params)` renamed to `updateCart(params)`
+  - `checkout.ts` action file deleted — all exports now come from `cart.ts`
+  - `UpdateCheckoutParams` type removed — use `UpdateCartParams` instead
+
+  **Other changes:**
+
+  - All cart and checkout server actions now use explicit cart IDs via the `carts` namespace
+  - Added cart ID cookie storage (`getCartId`, `setCartId`, `clearCartId`)
+  - Cart ID is now persisted alongside the cart token for REST endpoint routing
+  - Deduplicated `requireCartId` helper (was copied in 3 files)
+
+### Patch Changes
+
+- Updated dependencies:
+  - @spree/sdk@0.10.0
+
 ## 0.9.0
 
 ### Minor Changes
